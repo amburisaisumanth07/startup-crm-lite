@@ -1,3 +1,4 @@
+import { useChartTheme } from '../../hooks/useChartTheme';
 
 /**
  * @typedef {Object} Lead
@@ -23,6 +24,8 @@
  * @returns {React.JSX.Element} The rendered pipeline overview card
  */
 export default function PipelineOverview({ leads = [] }) {
+  const { tooltipWrapperClass } = useChartTheme();
+
   // Define standard statuses and their styling properties
   const statusConfig = {
     New: { label: 'New', colorClass: 'bg-blue-500', textClass: 'text-blue-500', dotClass: 'bg-blue-500' },
@@ -74,12 +77,12 @@ export default function PipelineOverview({ leads = [] }) {
               .map((stage) => (
                 <div
                   key={stage.status}
-                  className={`${stage.colorClass} h-full transition-all duration-500 hover:brightness-95 relative group cursor-pointer`}
+                  className={`${stage.colorClass} h-full transition-all duration-200 hover:brightness-110 relative group cursor-pointer`}
                   style={{ width: `${stage.percentage}%` }}
                   title={`${stage.label}: ${stage.count} (${stage.percentage.toFixed(1)}%)`}
                 >
                   {/* Tooltip for hover action */}
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap bg-text-main text-text-inverse text-[10px] font-bold px-2 py-1 rounded shadow-premium">
+                  <span className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap ${tooltipWrapperClass} text-[10px] font-bold px-2 py-1 shadow-premium`}>
                     {stage.label}: {stage.count} ({stage.percentage.toFixed(1)}%)
                   </span>
                 </div>
@@ -91,7 +94,7 @@ export default function PipelineOverview({ leads = [] }) {
             {stages.map((stage) => (
               <div
                 key={stage.status}
-                className="flex items-start gap-2.5 p-2 rounded-lg border border-transparent hover:border-border-subtle hover:bg-bg-base/50 transition-all duration-200"
+                className="flex items-start gap-2.5 p-2 rounded-lg border border-transparent hover:border-border-subtle hover:bg-gray-50 dark:hover:bg-slate-900 transition-all duration-200"
               >
                 <span className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 ${stage.dotClass}`} />
                 <div className="min-w-0">
