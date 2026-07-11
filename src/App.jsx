@@ -7,6 +7,10 @@ import AppLayout from './components/common/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import Analytics from './pages/Analytics';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import { ProtectedRoute } from './routes/index';
+import { AuthProvider } from './context/AuthContext';
 
 /**
  * Root application component.
@@ -21,13 +25,22 @@ import Analytics from './pages/Analytics';
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="analytics" element={<Analytics />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Public auth routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected app routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="leads" element={<Leads />} />
+              <Route path="analytics" element={<Analytics />} />
+            </Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -38,3 +51,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+

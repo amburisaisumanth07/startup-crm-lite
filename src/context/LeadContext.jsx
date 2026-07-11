@@ -1,371 +1,351 @@
-import React, { createContext, useContext } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
-
 /**
- * @fileoverview LeadContext — global state management for CRM lead records.
+ * @fileoverview LeadContext.jsx — Global state management for CRM lead records.
  *
- * Lead object shape:
+ * BREAKING CHANGE FROM PREVIOUS VERSION:
+ *  - localStorage persistence has been REMOVED. Lead data now lives on the
+ *    Express / MongoDB backend and is fetched via `leadService.js`.
+ *  - The `useLocalStorage` hook is no longer imported.
+ *  - All CRUD operations are now asynchronous (they call the API and update
+ *    React state only when the server confirms success).
+ *
+ * State shape:
+ *  - leads      → array of Lead objects from the server
+ *  - activities → kept in-memory (derived from backend data; generated locally
+ *                 for now to avoid breaking existing UI components)
+ *  - isLoading  → true while any API call is in-flight
+ *  - pagination → { page, totalPages, total } from the last getLeads response
+ *
+ * Lead object shape (mirrors MongoDB document):
  * @typedef {Object} Lead
- * @property {string}  id        - Unique identifier (UUID)
- * @property {string}  name      - Full name of the lead contact
- * @property {string}  company   - Company / organisation name
- * @property {string}  email     - Contact email address
- * @property {string}  phone     - Contact phone number
- * @property {number}  value     - Estimated deal value in USD
+ * @property {string}  _id          - MongoDB ObjectId string (backend primary key)
+ * @property {string}  id           - Alias for _id — set during normalisation so
+ *                                    existing components using lead.id still work
+ * @property {string}  name         - Full name of the lead contact
+ * @property {string}  company      - Company / organisation name
+ * @property {string}  email        - Contact email address
+ * @property {string}  phone        - Contact phone number
+ * @property {number}  value        - Estimated deal value in USD
  * @property {'New'|'Contacted'|'Meeting Scheduled'|'Proposal Sent'|'Won'|'Lost'} status
- *   - Current lifecycle stage of the lead
  * @property {'Website'|'Referral'|'LinkedIn'|'Cold Call'|'Email Campaign'|'Other'} source
- *   - Acquisition channel
  * @property {string}  owner        - Team member responsible for this lead
  * @property {string}  lastContacted - ISO 8601 date-time of last contact
- * @property {string}  createdAt     - ISO 8601 date-time when the lead was created
- * @property {string}  [notes]       - Optional free-text notes
+ * @property {string}  createdAt    - ISO 8601 date-time when the lead was created
+ * @property {string}  [notes]      - Optional free-text notes
  */
 
-/**
- * Activity object shape:
- * @typedef {Object} Activity
- * @property {string} id        - Unique activity identifier
- * @property {string} leadId    - ID of the associated lead
- * @property {string} leadName  - Display name of the associated lead
- * @property {'lead_created'|'status_change'|'note_added'|'value_updated'} type
- * @property {string} content   - Human-readable description of the activity
- * @property {string} timestamp - ISO 8601 date-time when the activity occurred
- */
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
+import * as leadService from '../services/leadService';
 
-/** @type {Lead[]} */
-const initialLeads = [
-  {
-    id: 'lead-1',
-    name: 'Sarah Connor',
-    company: 'Cyberdyne Systems',
-    email: 's.connor@cyberdyne.io',
-    phone: '+1 (555) 019-2831',
-    value: 48000,
-    status: 'Meeting Scheduled',
-    source: 'Website',
-    owner: 'Sarah Chen',
-    lastContacted: '2026-06-12T10:30:00Z',
-    createdAt: '2026-05-15T09:00:00Z',
-    notes: 'Very interested in our API integrations. Demanded high security standards.'
-  },
-  {
-    id: 'lead-2',
-    name: 'Miles Dyson',
-    company: 'Neural Net Corp',
-    email: 'm.dyson@neuralnet.com',
-    phone: '+1 (555) 014-9988',
-    value: 125000,
-    status: 'Won',
-    source: 'Referral',
-    owner: 'Marcus Vance',
-    lastContacted: '2026-06-14T15:20:00Z',
-    createdAt: '2026-05-20T11:30:00Z',
-    notes: 'Deal closed! Contract signed for enterprise-wide subscription.'
-  },
-  {
-    id: 'lead-3',
-    name: 'Bruce Wayne',
-    company: 'Wayne Enterprises',
-    email: 'bruce@wayne.corp',
-    phone: '+1 (555) 911-1939',
-    value: 250000,
-    status: 'Proposal Sent',
-    source: 'Referral',
-    owner: 'Alex Rivera',
-    lastContacted: '2026-06-11T18:00:00Z',
-    createdAt: '2026-06-01T08:15:00Z',
-    notes: 'Requires custom on-premise components. High contract value potential.'
-  },
-  {
-    id: 'lead-4',
-    name: 'Peter Parker',
-    company: 'Daily Bugle Press',
-    email: 'p.parker@dailybugle.com',
-    phone: '+1 (555) 321-9876',
-    value: 8500,
-    status: 'Contacted',
-    source: 'LinkedIn',
-    owner: 'Sarah Chen',
-    lastContacted: '2026-06-13T09:45:00Z',
-    createdAt: '2026-06-05T14:20:00Z',
-    notes: 'Sent initial discovery pricing grid. Follow up next Tuesday.'
-  },
-  {
-    id: 'lead-5',
-    name: 'Tony Stark',
-    company: 'Stark Industries',
-    email: 'tony@stark.ventures',
-    phone: '+1 (555) 300-3000',
-    value: 500000,
-    status: 'New',
-    source: 'Website',
-    owner: 'Alex Rivera',
-    lastContacted: '2026-06-15T12:00:00Z',
-    createdAt: '2026-06-15T11:45:00Z',
-    notes: 'Signed up through the sandbox platform. Needs dedicated cloud capacity details.'
-  },
-  {
-    id: 'lead-6',
-    name: 'Selina Kyle',
-    company: 'Gotham Antiques',
-    email: 'selina@kyle.net',
-    phone: '+1 (555) 888-2424',
-    value: 12000,
-    status: 'Lost',
-    source: 'Cold Call',
-    owner: 'Marcus Vance',
-    lastContacted: '2026-06-08T16:10:00Z',
-    createdAt: '2026-05-18T10:00:00Z',
-    notes: 'Decided to build an in-house open source tool instead of a commercial CRM license.'
-  },
-  {
-    id: 'lead-7',
-    name: 'Clark Kent',
-    company: 'Planet Media Group',
-    email: 'c.kent@dailyplanet.co',
-    phone: '+1 (555) 902-8811',
-    value: 35000,
-    status: 'Meeting Scheduled',
-    source: 'Referral',
-    owner: 'Sarah Chen',
-    lastContacted: '2026-06-14T10:15:00Z',
-    createdAt: '2026-06-02T13:40:00Z',
-    notes: 'Budget approved. Reviewing compliance document details.'
-  }
-];
+// ─── Context Definition ───────────────────────────────────────────────────────
 
-/** @type {Activity[]} */
-const initialActivities = [
-  {
-    id: 'act-1',
-    leadId: 'lead-5',
-    leadName: 'Tony Stark',
-    type: 'lead_created',
-    content: 'Lead created via Website API Sandbox signup',
-    timestamp: '2026-06-15T11:45:00Z'
-  },
-  {
-    id: 'act-2',
-    leadId: 'lead-2',
-    leadName: 'Miles Dyson',
-    type: 'status_change',
-    content: 'Status updated from Qualified to Won',
-    timestamp: '2026-06-14T15:20:00Z'
-  },
-  {
-    id: 'act-3',
-    leadId: 'lead-7',
-    leadName: 'Clark Kent',
-    type: 'note_added',
-    content: 'Notes updated: Compliance details sent',
-    timestamp: '2026-06-14T10:15:00Z'
-  },
-  {
-    id: 'act-4',
-    leadId: 'lead-4',
-    leadName: 'Peter Parker',
-    type: 'status_change',
-    content: 'Status updated from New to Contacted',
-    timestamp: '2026-06-13T09:45:00Z'
-  },
-  {
-    id: 'act-5',
-    leadId: 'lead-1',
-    leadName: 'Sarah Connor',
-    type: 'value_updated',
-    content: 'Deal value increased from $35,000 to $48,000',
-    timestamp: '2026-06-12T10:30:00Z'
-  }
-];
-
-/**
- * The React Context object for lead data.
- * Consume via the `useLeads` hook — never use this directly.
- * @type {React.Context<{
- *   leads: Lead[],
- *   activities: Activity[],
- *   addLead: (lead: Omit<Lead, 'id'|'createdAt'|'lastContacted'>) => void,
- *   updateLead: (id: string, updatedFields: Partial<Lead>) => void,
- *   deleteLead: (id: string) => void,
- *   getLeadById: (id: string) => Lead | undefined
- * } | undefined>}
- */
+/** @type {React.Context<object|undefined>} */
 const LeadContext = createContext(undefined);
 
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
 /**
- * LeadProvider wraps the application (or a subtree) and supplies the
- * lead data store and all CRUD operations via context.
+ * Normalises a lead object returned from the API so that existing UI components
+ * that access `lead.id` continue to work without changes.
  *
- * State is persisted to `localStorage` under the key `'crm-leads'` so that
- * data survives page refreshes.
+ * MongoDB returns `_id` as the primary key. We add a convenience `id` alias
+ * that mirrors `_id` so the entire component tree stays backward-compatible.
+ *
+ * @param {object} lead - Raw lead object from the API response
+ * @returns {Lead}
+ */
+function normaliseLead(lead) {
+  return {
+    ...lead,
+    // Provide `id` as a string alias for `_id` for backward compatibility
+    id: lead._id ?? lead.id,
+  };
+}
+
+/**
+ * Extracts the first meaningful error message from an Axios error response.
+ * Handles the common backend patterns:
+ *  - { message: "..." }
+ *  - { errors: [{ msg: "..." }] }
+ *  - Plain string body
+ *
+ * @param {import('axios').AxiosError} error
+ * @returns {string}
+ */
+function extractErrorMessage(error) {
+  const data = error?.response?.data;
+  if (!data) return error.message || 'An unexpected error occurred.';
+  if (typeof data === 'string') return data;
+  if (data.message) return data.message;
+  if (Array.isArray(data.errors) && data.errors[0]?.msg) return data.errors[0].msg;
+  return 'An unexpected error occurred.';
+}
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
+
+/**
+ * LeadProvider supplies the lead data store and all CRUD operations to the
+ * component tree via context. Data is now fetched from the Express API;
+ * there is no localStorage persistence for leads.
  *
  * @param {{ children: React.ReactNode }} props
  * @returns {React.JSX.Element}
  */
 export function LeadProvider({ children }) {
-  const [leads, setLeads] = useLocalStorage('crm-leads', initialLeads);
-  const [activities, setActivities] = useLocalStorage('crm-activities', initialActivities);
+  /** @type {[Lead[], Function]} */
+  const [leads, setLeads] = useState([]);
 
   /**
-   * Appends a new activity entry to the activity log.
-   * The log is capped at 50 entries (most-recent first).
+   * In-memory activity log — keeps the activity feed UI working without a
+   * dedicated backend endpoint. Activities are generated locally when CRUD
+   * operations succeed (mirroring the previous localStorage implementation).
    *
-   * @param {string} leadId   - ID of the lead this activity relates to
-   * @param {string} leadName - Display name of the related lead
-   * @param {Activity['type']} type - Category of activity
-   * @param {string} content  - Human-readable activity description
-   * @returns {void}
+   * @type {[object[], Function]}
    */
-  const logActivity = (leadId, leadName, type, content) => {
-    /** @type {Activity} */
+  const [activities, setActivities] = useState([]);
+
+  /** True while any API call is in-flight. */
+  const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * Pagination metadata from the most recent `fetchLeads` call.
+   * @type {[{ page: number, totalPages: number, total: number }, Function]}
+   */
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+
+  // ─── Activity Logger ────────────────────────────────────────────────────────
+
+  /**
+   * Appends a new entry to the in-memory activity log (capped at 50 entries).
+   *
+   * @param {string} leadId
+   * @param {string} leadName
+   * @param {'lead_created'|'status_change'|'note_added'|'value_updated'} type
+   * @param {string} content
+   */
+  const logActivity = useCallback((leadId, leadName, type, content) => {
     const newActivity = {
-      id: `act-${(typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now()}`,
+      id: `act-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`,
       leadId,
       leadName,
       type,
       content,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
     setActivities((prev) => [newActivity, ...prev].slice(0, 50));
-  };
+  }, []);
+
+  // ─── CRUD Operations ────────────────────────────────────────────────────────
 
   /**
-   * Creates and persists a new lead record.
-   * Automatically generates a unique `id` via `crypto.randomUUID()` (falling
-   * back to `Date.now()` in environments that do not support the Web Crypto API)
-   * and stamps `createdAt` / `lastContacted` with the current UTC time.
+   * Fetches leads from the backend API with optional filter/pagination params.
    *
-   * @param {Omit<Lead, 'id'|'createdAt'|'lastContacted'>} lead
-   *   - Lead data submitted from the creation form (without id / timestamps)
-   * @returns {void}
-   */
-  const addLead = (lead) => {
-    const uniqueId =
-      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `lead-${Date.now()}`;
-
-    /** @type {Lead} */
-    const newLead = {
-      ...lead,
-      id: uniqueId,
-      createdAt: new Date().toISOString(),
-      lastContacted: new Date().toISOString()
-    };
-
-    setLeads((prev) => [newLead, ...prev]);
-    logActivity(
-      newLead.id,
-      newLead.name,
-      'lead_created',
-      `Lead added with deal value $${Number(newLead.value).toLocaleString()}`
-    );
-  };
-
-  /**
-   * Merges `updatedFields` into an existing lead record identified by `id`.
-   * Side-effects:
-   *  - Updates `lastContacted` to the current UTC time.
-   *  - Logs a `status_change` activity when `status` differs from the previous value.
-   *  - Logs a `value_updated` activity when `value` differs from the previous value.
-   *  - Logs a `note_added` activity when `notes` differ from the previous value.
+   * Updates `leads`, `pagination`, and `isLoading`.
+   * Shows an error toast if the request fails.
    *
-   * @param {string} id - The unique identifier of the lead to update
-   * @param {Partial<Lead>} updatedFields - Subset of lead fields to merge in
-   * @returns {void}
+   * @param {{ status?: string, search?: string, page?: number, source?: string }} [params]
+   * @returns {Promise<void>}
    */
-  const updateLead = (id, updatedFields) => {
-    setLeads((prevLeads) =>
-      prevLeads.map((lead) => {
-        if (lead.id !== id) return lead;
+  const fetchLeads = useCallback(async (params = {}) => {
+    setIsLoading(true);
+    try {
+      const data = await leadService.getLeads(params);
 
-        // Log discrete change events before merging
-        if (updatedFields.status && updatedFields.status !== lead.status) {
-          logActivity(id, lead.name, 'status_change', `Status updated from ${lead.status} to ${updatedFields.status}`);
-        }
-        if (updatedFields.value !== undefined && Number(updatedFields.value) !== lead.value) {
-          logActivity(
-            id,
-            lead.name,
-            'value_updated',
-            `Deal value updated from $${lead.value.toLocaleString()} to $${Number(updatedFields.value).toLocaleString()}`
-          );
-        }
-        if (updatedFields.notes !== undefined && updatedFields.notes !== lead.notes) {
-          logActivity(
-            id,
-            lead.name,
-            'note_added',
-            `Notes updated: "${String(updatedFields.notes).slice(0, 30)}${updatedFields.notes.length > 30 ? '...' : ''}"`
-          );
-        }
+      // Normalise all leads so that `lead.id` works for legacy components
+      // Backend returns { data: [], pagination } — fall back to .leads then raw array
+      const rawLeads = data.data ?? data.leads ?? data;
+      const normalisedLeads = Array.isArray(rawLeads) ? rawLeads.map(normaliseLead) : [];
+      setLeads(normalisedLeads);
 
-        return {
-          ...lead,
-          ...updatedFields,
-          lastContacted: new Date().toISOString()
-        };
-      })
-    );
-  };
-
-  /**
-   * Permanently removes a lead record from the store.
-   * Logs a final `status_change` activity entry before deletion.
-   *
-   * @param {string} id - The unique identifier of the lead to delete
-   * @returns {void}
-   */
-  const deleteLead = (id) => {
-    const leadToDelete = leads.find((l) => l.id === id);
-    setLeads((prev) => prev.filter((lead) => lead.id !== id));
-    if (leadToDelete) {
-      logActivity(id, leadToDelete.name, 'status_change', 'Lead removed from database');
+      // Update pagination only when the backend provides it
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
+    } catch (error) {
+      toast.error(extractErrorMessage(error) || 'Failed to load leads.');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
   /**
-   * Retrieves a single lead record by its unique identifier.
-   * Returns `undefined` if no lead with the given `id` exists.
+   * Creates a new lead via the API and prepends it to the local `leads` array.
    *
-   * @param {string} id - The unique identifier of the lead to retrieve
-   * @returns {Lead | undefined}
+   * Shows a success toast on completion and an error toast on failure.
+   *
+   * @param {object} leadData - Lead fields to submit (excluding id/timestamps)
+   * @returns {Promise<void>}
    */
-  const getLeadById = (id) => {
+  const addLead = useCallback(async (leadData) => {
+    setIsLoading(true);
+    try {
+      const data = await leadService.createLead(leadData);
+      const newLead = normaliseLead(data.lead ?? data);
+
+      // Prepend so the new lead appears at the top of the list
+      setLeads((prev) => [newLead, ...prev]);
+
+      logActivity(
+        newLead.id,
+        newLead.name,
+        'lead_created',
+        `Lead added with deal value $${Number(newLead.value).toLocaleString()}`
+      );
+
+      toast.success('Lead created successfully!', {
+        style: {
+          border: '1px solid #22C55E',
+          padding: '12px',
+          color: 'var(--text-main)',
+          background: 'var(--bg-surface)',
+        },
+        iconTheme: { primary: '#22C55E', secondary: '#FFF' },
+      });
+    } catch (error) {
+      toast.error(extractErrorMessage(error) || 'Failed to create lead.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logActivity]);
+
+  /**
+   * Updates an existing lead via the API and merges the returned data into
+   * the local `leads` array.
+   *
+   * @param {string} id          - Lead ID to update
+   * @param {object} updatedFields - Partial or full lead data
+   * @returns {Promise<void>}
+   */
+  const updateLead = useCallback(async (id, updatedFields) => {
+    setIsLoading(true);
+    try {
+      const data = await leadService.updateLead(id, updatedFields);
+      const updatedLead = normaliseLead(data.lead ?? data);
+
+      setLeads((prev) =>
+        prev.map((lead) => (lead.id === id ? updatedLead : lead))
+      );
+
+      // Log discrete change events (mirrors previous localStorage behaviour)
+      const oldLead = leads.find((l) => l.id === id);
+      if (oldLead) {
+        if (updatedFields.status && updatedFields.status !== oldLead.status) {
+          logActivity(id, oldLead.name, 'status_change',
+            `Status updated from ${oldLead.status} to ${updatedFields.status}`);
+        }
+        if (updatedFields.value !== undefined && Number(updatedFields.value) !== oldLead.value) {
+          logActivity(id, oldLead.name, 'value_updated',
+            `Deal value updated from $${oldLead.value?.toLocaleString()} to $${Number(updatedFields.value).toLocaleString()}`);
+        }
+        if (updatedFields.notes !== undefined && updatedFields.notes !== oldLead.notes) {
+          logActivity(id, oldLead.name, 'note_added',
+            `Notes updated: "${String(updatedFields.notes).slice(0, 30)}${updatedFields.notes.length > 30 ? '...' : ''}"`);
+        }
+      }
+
+      toast.success('Lead details updated.', {
+        style: {
+          border: '1px solid #22C55E',
+          padding: '12px',
+          color: 'var(--text-main)',
+          background: 'var(--bg-surface)',
+        },
+        iconTheme: { primary: '#22C55E', secondary: '#FFF' },
+      });
+    } catch (error) {
+      toast.error(extractErrorMessage(error) || 'Failed to update lead.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [leads, logActivity]);
+
+  /**
+   * Permanently deletes a lead via the API and removes it from local state.
+   *
+   * @param {string} id - Lead ID to delete
+   * @returns {Promise<void>}
+   */
+  const deleteLead = useCallback(async (id) => {
+    setIsLoading(true);
+    try {
+      const leadToDelete = leads.find((l) => l.id === id);
+      await leadService.deleteLead(id);
+
+      setLeads((prev) => prev.filter((lead) => lead.id !== id));
+
+      if (leadToDelete) {
+        logActivity(id, leadToDelete.name, 'status_change', 'Lead removed from database');
+      }
+
+      toast.error('Lead record deleted.', {
+        style: {
+          border: '1px solid #EF4444',
+          padding: '12px',
+          color: 'var(--text-main)',
+          background: 'var(--bg-surface)',
+        },
+        iconTheme: { primary: '#EF4444', secondary: '#FFF' },
+      });
+    } catch (error) {
+      toast.error(extractErrorMessage(error) || 'Failed to delete lead.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [leads, logActivity]);
+
+  /**
+   * Returns a single lead by its ID from the current in-memory store.
+   * Does NOT make a network request — use `fetchLeads` to refresh data first.
+   *
+   * @param {string} id
+   * @returns {Lead|undefined}
+   */
+  const getLeadById = useCallback((id) => {
     return leads.find((lead) => lead.id === id);
-  };
+  }, [leads]);
+
+  // ─── Context Value ─────────────────────────────────────────────────────────
 
   return (
-    <LeadContext.Provider value={{ leads, activities, addLead, updateLead, deleteLead, getLeadById }}>
+    <LeadContext.Provider
+      value={{
+        leads,
+        activities,
+        isLoading,
+        pagination,
+        fetchLeads,
+        addLead,
+        updateLead,
+        deleteLead,
+        getLeadById,
+      }}
+    >
       {children}
     </LeadContext.Provider>
   );
 }
 
+// ─── Custom Hook ──────────────────────────────────────────────────────────────
+
 /**
- * Custom hook to consume the LeadContext.
+ * Custom hook to consume LeadContext.
  *
- * Must be called from within a component tree wrapped by `<LeadProvider>`.
- * Throws a descriptive error if invoked outside the provider boundary so that
- * missing provider bugs are caught early during development.
+ * Must be called from within a `<LeadProvider>` component tree.
+ * Throws a descriptive error outside the provider boundary.
  *
  * @returns {{
  *   leads: Lead[],
- *   activities: Activity[],
- *   addLead: (lead: Omit<Lead, 'id'|'createdAt'|'lastContacted'>) => void,
- *   updateLead: (id: string, updatedFields: Partial<Lead>) => void,
- *   deleteLead: (id: string) => void,
- *   getLeadById: (id: string) => Lead | undefined
+ *   activities: object[],
+ *   isLoading: boolean,
+ *   pagination: object,
+ *   fetchLeads: Function,
+ *   addLead: Function,
+ *   updateLead: Function,
+ *   deleteLead: Function,
+ *   getLeadById: Function,
  * }}
  *
- * @throws {Error} When called outside of a `<LeadProvider>` component tree
- *
- * @example
- * function MyComponent() {
- *   const { leads, addLead } = useLeads();
- *   return <div>{leads.length} leads</div>;
- * }
+ * @throws {Error} When called outside of a `<LeadProvider>`
  */
 export function useLeads() {
   const context = useContext(LeadContext);

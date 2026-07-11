@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Users, Briefcase, DollarSign, TrendingUp } from 'lucide-react';
@@ -32,7 +32,12 @@ export default function Dashboard() {
    * KPI cards always show totals across ALL leads regardless of filter state.
    * @type {{ leads: import('../context/LeadContext').Lead[] }}
    */
-  const { leads } = useLeads();
+  const { leads, fetchLeads } = useLeads();
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
 
   /**
    * Shared persistent filter state from FilterContext.

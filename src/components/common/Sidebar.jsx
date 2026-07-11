@@ -1,12 +1,24 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart3, Sun, Moon, Sparkles, X } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Sun, Moon, Sparkles, X, LogOut } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLeads } from '../../context/LeadContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const { isDark, toggleTheme } = useTheme();
   const { leads } = useLeads();
+  const { user, logout } = useAuth();
+
+  // Get user initials (e.g. "John Doe" -> "JD")
+  const getUserInitials = () => {
+    if (!user || !user.name) return '??';
+    const parts = user.name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return user.name.slice(0, 2).toUpperCase();
+  };
 
   const navItems = [
     { to: '/', label: 'Dashboard', subLabel: 'Control Center', icon: LayoutDashboard },
@@ -121,19 +133,30 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             </div>
           </button>
 
-          {/* User Profile */}
-          <div className="flex items-center justify-start md:justify-center lg:justify-start gap-3 rounded-lg p-2 hover:bg-bg-surface-hover transition-colors cursor-pointer">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light text-primary text-xs font-bold dark:bg-primary/10 shrink-0">
-              SS
+          {/* User Profile & Sign Out */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-start md:justify-center lg:justify-start gap-3 rounded-lg p-2 hover:bg-bg-surface-hover transition-colors">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light text-primary text-xs font-bold dark:bg-primary/10 shrink-0">
+                {getUserInitials()}
+              </div>
+              <div className="overflow-hidden md:hidden lg:block flex-1">
+                <p className="truncate text-xs font-semibold text-text-main">{user?.name || 'Sai Sumanth'}</p>
+                <p className="truncate text-[10px] text-text-muted">{user?.email || 'Founder & CEO'}</p>
+              </div>
             </div>
-            <div className="overflow-hidden md:hidden lg:block">
-              <p className="truncate text-xs font-semibold text-text-main">Sai Sumanth</p>
-              <p className="truncate text-[10px] text-text-muted">Founder & CEO</p>
-            </div>
+
+            <button
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-lg p-3 md:p-2.5 lg:px-3 lg:py-2 text-xs font-medium text-danger hover:bg-danger-light hover:text-danger transition-colors cursor-pointer"
+            >
+              <LogOut className="h-5 w-5 md:h-5 md:w-5 lg:h-4 lg:w-4 shrink-0" />
+              <span className="md:hidden lg:block">Sign Out</span>
+            </button>
           </div>
         </div>
       </aside>
     </>
   );
 }
+
 

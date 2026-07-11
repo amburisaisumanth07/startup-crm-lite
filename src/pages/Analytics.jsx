@@ -21,8 +21,13 @@ import LoadingSkeleton from '../components/analytics/LoadingSkeleton';
 
 export default function Analytics() {
   const navigate = useNavigate();
-  const { leads } = useLeads();
+  const { leads, fetchLeads } = useLeads();
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
 
   // Use the custom hook to compute all analytics data
   const {

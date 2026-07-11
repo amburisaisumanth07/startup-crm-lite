@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Plus, X, LayoutList, LayoutGrid } from 'lucide-react';
-import toast from 'react-hot-toast';
+// Toasts for CRUD operations are shown by LeadContext — no direct toast calls needed here
 
 import { useLeads } from '../context/LeadContext';
 import { useFilters } from '../context/FilterContext';
@@ -31,7 +31,12 @@ export default function Leads() {
   // ─── Global state ──────────────────────────────────────────────────────────
 
   /** Live lead records and CRUD operations from LeadContext. */
-  const { leads, addLead, updateLead, deleteLead } = useLeads();
+  const { leads, addLead, updateLead, deleteLead, fetchLeads } = useLeads();
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
 
   /**
    * Persistent filter/search/sort state from FilterContext.
@@ -204,16 +209,7 @@ export default function Leads() {
    * @returns {void}
    */
   const handleCreateLead = (leadData) => {
-    addLead(leadData);
-    toast.success('Lead created successfully', {
-      style: {
-        border: '1px solid #22C55E',
-        padding: '12px',
-        color: 'var(--text-main)',
-        background: 'var(--bg-surface)',
-      },
-      iconTheme: { primary: '#22C55E', secondary: '#FFF' },
-    });
+    addLead(leadData); // LeadContext.addLead() shows a success toast on completion
     handleCloseModal();
   };
 
@@ -224,16 +220,7 @@ export default function Leads() {
    * @returns {void}
    */
   const handleUpdateLead = (leadData) => {
-    updateLead(selectedLead.id, leadData);
-    toast.success('Lead details updated', {
-      style: {
-        border: '1px solid #22C55E',
-        padding: '12px',
-        color: 'var(--text-main)',
-        background: 'var(--bg-surface)',
-      },
-      iconTheme: { primary: '#22C55E', secondary: '#FFF' },
-    });
+    updateLead(selectedLead.id, leadData); // LeadContext.updateLead() shows a success toast on completion
     handleCloseModal();
   };
 
@@ -246,16 +233,7 @@ export default function Leads() {
    */
   const handleDeleteLead = (id) => {
     if (window.confirm('Are you sure you want to remove this lead record?')) {
-      deleteLead(id);
-      toast.error('Lead record deleted', {
-        style: {
-          border: '1px solid #EF4444',
-          padding: '12px',
-          color: 'var(--text-main)',
-          background: 'var(--bg-surface)',
-        },
-        iconTheme: { primary: '#EF4444', secondary: '#FFF' },
-      });
+      deleteLead(id); // LeadContext.deleteLead() shows a deletion toast on completion
       if (selectedLead && selectedLead.id === id) {
         handleCloseModal();
       }
