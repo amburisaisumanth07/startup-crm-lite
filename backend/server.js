@@ -149,7 +149,7 @@ app.use(express.urlencoded({ extended: true }));
  * 2. MongoDB Injection Protection:
  * Sanitizes req.body, req.query, and req.params to prevent Operator Injection attacks.
  */
-//app.use(mongoSanitize());
+app.use(mongoSanitize());
 
 // ----------------------------------------------------
 // Route Registration
