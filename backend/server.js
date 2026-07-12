@@ -95,7 +95,23 @@ const LOCALHOST_ORIGIN_RE = /^http:\/\/localhost:\d+$/;
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman, curl, server-to-server, mobile apps)
+      if (!origin) return callback(null, true);
+
+      // In development: allow all localhost origins
+      if (!IS_PRODUCTION && LOCALHOST_ORIGIN_RE.test(origin)) {
+        return callback(null, true);
+      }
+
+      // In production: only allow explicitly configured origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Reject all other origins
+      return callback(new Error(`CORS: origin '${origin}' is not allowed`));
+    },
     credentials: true,
   })
 );
