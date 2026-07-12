@@ -150,7 +150,7 @@ app.use(express.urlencoded({ extended: true }));
  * 2. MongoDB Injection Protection:
  * Sanitizes req.body, req.query, and req.params to prevent Operator Injection attacks.
  */
-app.use(mongoSanitize());
+//app.use(mongoSanitize());
 
 // ----------------------------------------------------
 // Route Registration
@@ -188,7 +188,7 @@ const server = app.listen(PORT, () => {
  */
 const handleGracefulShutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Server shutting down gracefully...`);
-  
+
   server.close(async () => {
     console.log('HTTP server closed.');
     try {
