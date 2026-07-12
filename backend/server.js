@@ -95,16 +95,10 @@ const LOCALHOST_ORIGIN_RE = /^http:\/\/localhost:\d+$/;
 
 app.use(
   cors({
-    origin: [
-      "https://startup-crm-lite-drab.vercel.app",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-    ],
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
-
 /**
  * 1. Rate Limiting:
  * General rate limit: 100 requests per 15 minutes per IP
