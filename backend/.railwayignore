@@ -1,0 +1,22 @@
+# Railway Deployment Ignore File
+# Files listed here are excluded from the Railway build container.
+# Syntax is identical to .gitignore.
+
+# Development test scripts — not needed in production
+test-a-record.js
+test-dns.js
+test-mongo.js
+test-mongoose.js
+test-tls.js
+
+# Local environment files (Railway injects env vars via its dashboard)
+.env
+
+# Dev tooling
+nodemon.json
+.eslintrc*
+eslint.config.*
+
+# OS artifacts
+.DS_Store
+Thumbs.db

@@ -4,11 +4,33 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import mongoSanitize from 'express-mongo-sanitize';
 import mongoose from 'mongoose';
 
 // Load environment variables before anything else
 dotenv.config();
+
+// ----------------------------------------------------
+// Process-Level Safety Net (must be first)
+// ----------------------------------------------------
+/**
+ * Catch any unhandled promise rejection that slips through try/catch blocks.
+ * In production on Railway, an unhandled rejection crashes the container and
+ * triggers a silent restart loop with no diagnostic log.
+ */
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED PROMISE REJECTION — shutting down.', { reason, promise });
+  // Exit so Railway restarts the container (which is the correct behavior)
+  process.exit(1);
+});
+
+/**
+ * Catch synchronous exceptions thrown outside of any error boundary.
+ * These are almost always programming bugs; log them clearly and exit.
+ */
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION — shutting down.', err);
+  process.exit(1);
+});
 
 /**
  * 4. Environment validation on startup:
@@ -40,14 +62,15 @@ import { connectDB } from './config/database.js';
 // Import Middleware
 import { errorHandler } from './middleware/errorHandler.js';
 
+// Import our Express 5-compatible inline MongoDB sanitizer.
+// NOTE: express-mongo-sanitize@2.2.0 accesses the internal `req._body` property
+// that was removed in Express 5, causing it to silently do nothing. Our custom
+// middleware replicates the same sanitization without any Express internals.
+import { mongoSanitize } from './middleware/mongoSanitize.js';
+
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
-
-// ----------------------------------------------------
-// Database Initialization
-// ----------------------------------------------------
-connectDB();
 
 // ----------------------------------------------------
 // Express App Initialization
@@ -55,19 +78,40 @@ connectDB();
 const app = express();
 
 // ----------------------------------------------------
+// Trust Proxy — REQUIRED for Railway
+// ----------------------------------------------------
+/**
+ * Railway (and most cloud platforms) sit behind a load balancer / reverse proxy.
+ * Without this setting:
+ *   - express-rate-limit sees the same proxy IP for every client, applying
+ *     the rate limit to ALL users simultaneously instead of per-client.
+ *   - req.ip returns the proxy's IP, not the real client IP.
+ *
+ * '1' means trust the first proxy in the X-Forwarded-For chain (Railway's LB).
+ */
+app.set('trust proxy', 1);
+
+// ----------------------------------------------------
+// Database Initialization
+// ----------------------------------------------------
+// Connect after app is initialized so event emitters are ready.
+connectDB();
+
+// ----------------------------------------------------
 // Middleware Setup
 // ----------------------------------------------------
 
-// helmet: sets various HTTP headers to secure the Express app
+// helmet: sets various security HTTP headers
 app.use(helmet());
 
 /**
- * 6. Request logging improvement:
- * In production: use 'combined' format (more detail)
- * In development: use 'dev' format (concise, colorized)
+ * 6. Request logging:
+ * Production: 'short' format — avoids logging full query strings which may
+ *   contain PII (e.g. ?search=john@company.com) in Railway's log stream.
+ * Development: 'dev' format — concise, colorized output for local debugging.
  */
 if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined'));
+  app.use(morgan('short'));
 } else {
   app.use(morgan('dev'));
 }
@@ -82,12 +126,17 @@ if (process.env.NODE_ENV === 'production') {
  *
  * Required env var:
  *   FRONTEND_URL  — your deployed Vercel frontend URL (e.g. https://startup-crm.vercel.app)
+ *
+ * IMPORTANT: Trailing slashes are stripped from FRONTEND_URL because browser
+ *   Origin headers never include a trailing slash. Without stripping, the
+ *   allowedOrigins.includes(origin) check would always fail in production.
  */
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-// Build the explicit allowlist from environment — filter out any undefined/empty values
+// Strip any trailing slash from FRONTEND_URL before adding to allowlist.
+// Browser Origin headers: "https://startup-crm.vercel.app" (no trailing slash).
 const allowedOrigins = [
-  process.env.FRONTEND_URL,        // e.g. https://startup-crm.vercel.app
+  process.env.FRONTEND_URL?.replace(/\/$/, ''), // Strip trailing slash
 ].filter(Boolean);
 
 // Regex to match any localhost origin regardless of port (development only)
@@ -115,25 +164,36 @@ app.use(
     credentials: true,
   })
 );
+
 /**
  * 1. Rate Limiting:
- * General rate limit: 100 requests per 15 minutes per IP
- * Auth rate limit (stricter): 10 requests per 15 minutes for /api/auth routes
+ * General rate limit: 100 requests per 15 minutes per IP.
+ * Auth rate limit (stricter): 10 requests per 15 minutes for /api/auth routes.
+ *
+ * FIX: message must be a JSON object, not a plain string.
+ *   express-rate-limit calls res.send(message). In Express 5, sending a plain
+ *   string sets Content-Type to text/html. The Vite frontend expects
+ *   application/json and throws a JSON parse error on the plain string.
+ *
+ * FIX: standardHeaders: 'draft-8' is the current IETF standard (RateLimit-*).
+ *   legacyHeaders: false drops the deprecated X-RateLimit-* headers.
  */
-const generalLimiter = rateLimit({
+const rateLimitDefaults = {
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: 'Too many requests, please try again later.',
-  standardHeaders: true,
+  standardHeaders: 'draft-8',
   legacyHeaders: false,
+};
+
+const generalLimiter = rateLimit({
+  ...rateLimitDefaults,
+  max: 100,
+  message: { success: false, message: 'Too many requests, please try again later.' },
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  ...rateLimitDefaults,
   max: 10,
-  message: 'Too many auth attempts.',
-  standardHeaders: true,
-  legacyHeaders: false,
+  message: { success: false, message: 'Too many auth attempts, please try again later.' },
 });
 
 app.use('/api/', generalLimiter);
@@ -148,6 +208,7 @@ app.use(express.urlencoded({ extended: true }));
 /**
  * 2. MongoDB Injection Protection:
  * Sanitizes req.body, req.query, and req.params to prevent Operator Injection attacks.
+ * Uses our custom Express 5-compatible implementation (see middleware/mongoSanitize.js).
  */
 app.use(mongoSanitize());
 
@@ -160,6 +221,8 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -167,7 +230,24 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
 
-// Register error handler middleware last
+// ----------------------------------------------------
+// 404 Catch-All Route
+// ----------------------------------------------------
+/**
+ * Must be registered AFTER all valid routes and BEFORE the error handler.
+ * Without this, Express 5 returns its default HTML "Cannot GET /path" response,
+ * which the Vite frontend's JSON.parse will throw on.
+ */
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// ----------------------------------------------------
+// Global Error Handler (must be last middleware)
+// ----------------------------------------------------
 app.use(errorHandler);
 
 // ----------------------------------------------------
@@ -184,6 +264,13 @@ const server = app.listen(PORT, () => {
  * 5. Graceful shutdown:
  * Listens for process SIGTERM and SIGINT signals to close the HTTP server
  * and cleanly close the MongoDB connection before exiting.
+ *
+ * FIX: The force-shutdown setTimeout is now .unref()-ed.
+ *   Without .unref(), the timer holds the Node.js event loop open for 10 seconds
+ *   after server.close() finishes. Railway sees the process is still alive and
+ *   eventually sends SIGKILL, logging a deployment error. With .unref(), the
+ *   timer doesn't block exit — it only fires if the process is still running
+ *   when 10 seconds elapse (i.e., graceful shutdown hung).
  */
 const handleGracefulShutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Server shutting down gracefully...`);
@@ -201,11 +288,13 @@ const handleGracefulShutdown = async (signal) => {
     }
   });
 
-  // Force shutdown after 10 seconds if graceful shutdown hangs
+  // Force shutdown after 10 seconds if graceful shutdown hangs.
+  // .unref() prevents this timer from keeping the event loop alive
+  // if the server has already shut down cleanly.
   setTimeout(() => {
     console.error('Forced shutdown due to timeout.');
     process.exit(1);
-  }, 10000);
+  }, 10000).unref();
 };
 
 // Listen for termination signals from OS/orchestrator

@@ -88,9 +88,6 @@ export const leadSchema = new mongoose.Schema(
       maxLength: [1000, 'Notes cannot exceed 1000 characters'],
     },
     /**
-     * Reference to the User who owns/created this lead.
-     */
-    /**
      * Estimated value of the deal.
      */
     value: {

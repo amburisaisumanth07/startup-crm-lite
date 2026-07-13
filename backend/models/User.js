@@ -72,8 +72,8 @@ export const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function () {
   // Only re-hash when the password field has actually changed
   if (!this.isModified('password')) return;
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  // bcryptjs@3.x single-call API: hash(password, saltRounds)
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 // Instance method to compare passwords
