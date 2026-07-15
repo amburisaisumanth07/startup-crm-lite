@@ -1,6 +1,5 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart3, Sun, Moon, Sparkles, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Sun, Moon, Sparkles, X, LogOut, Settings } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLeads } from '../../context/LeadContext';
 import { useAuth } from '../../context/AuthContext';
@@ -23,7 +22,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const navItems = [
     { to: '/', label: 'Dashboard', subLabel: 'Control Center', icon: LayoutDashboard },
     { to: '/leads', label: 'Leads Ledger', subLabel: 'Prospect Database', icon: Users, badge: leads.length },
-    { to: '/analytics', label: 'Analytics', subLabel: 'Performance Metrics', icon: BarChart3 }
+    { to: '/analytics', label: 'Analytics', subLabel: 'Performance Metrics', icon: BarChart3 },
+    { to: '/settings', label: 'Settings', subLabel: 'App Preferences', icon: Settings }
   ];
 
   const sidebarClasses = `

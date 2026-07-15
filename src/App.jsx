@@ -7,6 +7,7 @@ import AppLayout from './components/common/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ProtectedRoute } from './routes/index';
@@ -37,6 +38,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="leads" element={<Leads />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Route>
         </Routes>
