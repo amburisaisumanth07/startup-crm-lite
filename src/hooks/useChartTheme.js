@@ -16,20 +16,20 @@ export function useChartTheme() {
    */
   const tooltipStyle = isDarkMode
     ? {
-        backgroundColor: '#020617',   // slate-950
-        border: '1px solid #1E293B',  // slate-800
+        backgroundColor: '#1B1B1B',   // brand dark surface
+        border: '1px solid #2C2C2C',  // brand dark border-subtle
         borderRadius: '12px',
-        color: '#FFFFFF',             // white
-        boxShadow: '0 4px 20px 0 rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)',
+        color: '#FAFAF7',             // brand dark text-main
+        boxShadow: '0 4px 20px 0 rgba(0,0,0,0.70), 0 0 0 1px rgba(231,201,119,0.08)',
         fontSize: '12px',
         padding: '10px 14px',
       }
     : {
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E5E7EB',  // gray-200
+        backgroundColor: '#F2EFE8',   // brand light surface
+        border: '1px solid #D8D2C8',  // brand light border-subtle
         borderRadius: '12px',
-        color: '#111827',             // gray-900
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 15px -3px rgba(0,0,0,0.04)',
+        color: '#151515',             // brand light text-main
+        boxShadow: '0 4px 6px -1px rgba(21,21,21,0.08), 0 10px 15px -3px rgba(21,21,21,0.05)',
         fontSize: '12px',
         padding: '10px 14px',
       };
@@ -38,25 +38,25 @@ export function useChartTheme() {
    * Tailwind classes for the custom tooltip JSX wrapper used in all charts.
    */
   const tooltipWrapperClass = isDarkMode
-    ? 'p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white shadow-[0_4px_20px_0_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)]'
-    : 'p-3 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 shadow-lg';
+    ? 'p-3 bg-bg-surface border border-border-subtle rounded-xl text-xs text-text-main shadow-premium'
+    : 'p-3 bg-bg-surface border border-border-subtle rounded-xl text-xs text-text-main shadow-premium';
 
   /**
    * Tailwind classes for the outer card wrapper of every chart card.
    * Adds subtle scale-lift + stronger shadow on hover, with a smooth transition.
    */
   const cardClass =
-    'flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 ' +
-    'rounded-2xl p-6 shadow-sm ' +
+    'flex flex-col bg-bg-surface border border-border-subtle ' +
+    'rounded-2xl p-6 shadow-subtle ' +
     'transition-all duration-200 ease-out ' +
-    'hover:shadow-xl dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:scale-[1.01] ' +
-    'hover:border-slate-300 dark:hover:border-slate-700';
+    'hover:shadow-premium hover:scale-[1.01] ' +
+    'hover:border-border-strong';
 
   /** Muted axis tick colour – used for Recharts XAxis/YAxis tick fill */
-  const tickColor = isDarkMode ? '#64748B' : '#94A3B8';
+  const tickColor = isDarkMode ? '#8A8578' : '#5C5750';
 
   /** Grid stroke colour */
-  const gridColor = isDarkMode ? '#1E293B' : '#E2E8F0';
+  const gridColor = isDarkMode ? '#2C2C2C' : '#D8D2C8';
 
   return { tooltipStyle, tooltipWrapperClass, cardClass, tickColor, gridColor, isDarkMode };
 }

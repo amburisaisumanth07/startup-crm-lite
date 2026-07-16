@@ -28,12 +28,12 @@ export default function RecentLeads({ leads = [] }) {
 
   // Status badge styling maps
   const statusStyles = {
-    New: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200/55 dark:border-blue-800/30',
-    Contacted: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400 border-indigo-200/55 dark:border-indigo-800/30',
-    'Meeting Scheduled': 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 border-purple-200/55 dark:border-purple-800/30',
-    'Proposal Sent': 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200/55 dark:border-amber-800/30',
-    Won: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border-green-200/55 dark:border-green-800/30',
-    Lost: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200/55 dark:border-red-800/30',
+    New: 'bg-bg-surface-hover text-text-muted border-border-subtle',
+    Contacted: 'bg-primary-light text-primary border-primary/30',
+    'Meeting Scheduled': 'bg-warning-light text-warning border-warning/30',
+    'Proposal Sent': 'bg-primary-light text-primary border-primary/30',
+    Won: 'bg-success-light text-success border-success/30',
+    Lost: 'bg-danger-light text-danger border-danger/30',
   };
 
   /**

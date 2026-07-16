@@ -11,7 +11,7 @@ export function BarChartCard({ data }) {
       return (
         <div className={tooltipWrapperClass}>
           <p className="font-bold mb-1">{month}</p>
-          <p className="text-blue-500 dark:text-blue-400 font-semibold">{leads} Leads</p>
+          <p className="text-primary font-semibold">{leads} Leads</p>
         </div>
       );
     }
@@ -21,8 +21,8 @@ export function BarChartCard({ data }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Monthly Leads Trend</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Total number of inbound leads ingested over last 6 months.</p>
+        <h3 className="text-base font-bold text-text-main">Monthly Leads Trend</h3>
+        <p className="text-xs text-text-muted">Total number of inbound leads ingested over last 6 months.</p>
       </div>
 
       <div className="h-64 mt-6">
@@ -30,8 +30,8 @@ export function BarChartCard({ data }) {
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="leadsBlueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563EB" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="#2563EB" stopOpacity={0.15} />
+                <stop offset="0%" stopColor="#D4A04A" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#D4A04A" stopOpacity={0.15} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
@@ -48,11 +48,11 @@ export function BarChartCard({ data }) {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 6 }}
+              cursor={{ fill: 'rgba(198,168,91,0.06)', radius: 6 }}
               contentStyle={{
-                backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                color: isDarkMode ? '#FFFFFF' : '#111827',
-                border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB',
+                backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                color: isDarkMode ? '#FAFAF7' : '#151515',
+                border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8',
               }}
             />
             <Bar

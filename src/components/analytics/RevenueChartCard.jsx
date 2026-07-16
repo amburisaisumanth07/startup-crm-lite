@@ -12,7 +12,7 @@ export function RevenueChartCard({ data }) {
       return (
         <div className={tooltipWrapperClass}>
           <p className="font-bold mb-1">{month} Revenue</p>
-          <p className="text-emerald-600 dark:text-emerald-400 font-semibold">{formatCurrency(revenue)}</p>
+          <p className="text-primary font-semibold">{formatCurrency(revenue)}</p>
         </div>
       );
     }
@@ -22,8 +22,8 @@ export function RevenueChartCard({ data }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Revenue Analytics</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Total won revenue trends calculated month over month.</p>
+        <h3 className="text-base font-bold text-text-main">Revenue Analytics</h3>
+        <p className="text-xs text-text-muted">Total won revenue trends calculated month over month.</p>
       </div>
 
       <div className="h-64 mt-6">
@@ -31,8 +31,8 @@ export function RevenueChartCard({ data }) {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="revenueGreenGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#22C55E" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="#22C55E" stopOpacity={0.0} />
+                <stop offset="0%" stopColor="#C6A85B" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#C6A85B" stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
@@ -51,20 +51,20 @@ export function RevenueChartCard({ data }) {
             <Tooltip
               content={<CustomTooltip />}
               contentStyle={{
-                backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                color: isDarkMode ? '#FFFFFF' : '#111827',
-                border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB',
+                backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                color: isDarkMode ? '#FAFAF7' : '#151515',
+                border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8',
               }}
             />
             <Area
               type="monotone"
               dataKey="revenue"
-              stroke="#22C55E"
+              stroke="#C6A85B"
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#revenueGreenGradient)"
               animationDuration={800}
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#22C55E' }}
+              activeDot={{ r: 6, strokeWidth: 0, fill: '#C6A85B' }}
             />
           </AreaChart>
         </ResponsiveContainer>

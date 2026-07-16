@@ -68,10 +68,10 @@ export default function Analytics() {
     return (
       <div className="py-8 animate-fadeIn">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-text-main">
             Analytics Dashboard
           </h1>
-          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-text-muted mt-1">
             Track sales performance, pipeline metrics, and growth trends.
           </p>
         </div>
@@ -86,10 +86,10 @@ export default function Analytics() {
       <div className="space-y-8 pt-1 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="w-48 h-6 bg-gray-200 dark:bg-slate-800 rounded-md animate-pulse" />
-            <div className="w-72 h-4 bg-gray-100 dark:bg-slate-800/60 rounded-md animate-pulse" />
+            <div className="w-48 h-6 bg-border-subtle rounded-md animate-pulse" />
+            <div className="w-72 h-4 bg-bg-surface-hover rounded-md animate-pulse" />
           </div>
-          <div className="w-64 h-10 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          <div className="w-64 h-10 bg-border-subtle rounded-xl animate-pulse" />
         </div>
         <LoadingSkeleton />
       </div>
@@ -99,12 +99,12 @@ export default function Analytics() {
   return (
     <div className="space-y-8 animate-fadeIn pt-1 pb-12">
       {/* Header section with Title & Date Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-gray-200 dark:border-slate-800/80 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-border-subtle pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-text-main">
             Analytics Dashboard
           </h1>
-          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-text-muted mt-1">
             Track sales performance, pipeline metrics, and growth trends.
           </p>
         </div>

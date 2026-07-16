@@ -14,7 +14,7 @@ export function LeadSourceChart({ data }) {
           <p className="font-bold mb-1">{name}</p>
           <div className="space-y-0.5 opacity-80">
             <p>Leads Count: <span className="font-semibold opacity-100">{count}</span></p>
-            <p>Percentage: <span className="font-semibold text-blue-500 dark:text-blue-400">{percentage}%</span></p>
+            <p>Percentage: <span className="font-semibold text-primary">{percentage}%</span></p>
           </div>
         </div>
       );
@@ -25,8 +25,8 @@ export function LeadSourceChart({ data }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Lead Source Distribution</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Analysis of the acquisition channels driving signups.</p>
+        <h3 className="text-base font-bold text-text-main">Lead Source Distribution</h3>
+        <p className="text-xs text-text-muted">Analysis of the acquisition channels driving signups.</p>
       </div>
 
       <div className="h-64 mt-6">
@@ -54,9 +54,9 @@ export function LeadSourceChart({ data }) {
               content={<CustomTooltip />}
               cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 4 }}
               contentStyle={{
-                backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                color: isDarkMode ? '#FFFFFF' : '#111827',
-                border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB',
+                backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                color: isDarkMode ? '#FAFAF7' : '#151515',
+                border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8',
               }}
             />
             <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={14} animationDuration={800}>

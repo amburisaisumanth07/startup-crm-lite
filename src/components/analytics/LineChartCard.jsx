@@ -11,7 +11,7 @@ export function LineChartCard({ data }) {
       return (
         <div className={tooltipWrapperClass}>
           <p className="font-bold mb-1">{month}</p>
-          <p className="text-emerald-600 dark:text-emerald-400 font-semibold">{rate}% Conversion</p>
+          <p className="text-primary font-semibold">{rate}% Conversion</p>
         </div>
       );
     }
@@ -21,8 +21,8 @@ export function LineChartCard({ data }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Monthly Conversion Trend</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Ratio of won deals over total monthly leads.</p>
+        <h3 className="text-base font-bold text-text-main">Monthly Conversion Trend</h3>
+        <p className="text-xs text-text-muted">Ratio of won deals over total monthly leads.</p>
       </div>
 
       <div className="h-64 mt-6">
@@ -45,18 +45,18 @@ export function LineChartCard({ data }) {
             <Tooltip
               content={<CustomTooltip />}
               contentStyle={{
-                backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                color: isDarkMode ? '#FFFFFF' : '#111827',
-                border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB',
+                backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                color: isDarkMode ? '#FAFAF7' : '#151515',
+                border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8',
               }}
             />
             <Line
               type="monotone"
               dataKey="rate"
-              stroke="#22C55E"
+              stroke="#D4A04A"
               strokeWidth={3}
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#22C55E' }}
-              dot={{ r: 4, strokeWidth: 2, stroke: '#22C55E', fill: 'transparent' }}
+              activeDot={{ r: 6, strokeWidth: 0, fill: '#D4A04A' }}
+              dot={{ r: 4, strokeWidth: 2, stroke: '#D4A04A', fill: 'transparent' }}
               animationDuration={800}
             />
           </LineChart>

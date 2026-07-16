@@ -247,10 +247,10 @@ export default function Leads() {
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-text-main">
             Leads Management
           </h1>
-          <p className="text-sm text-gray-600 dark:text-text-muted mt-1">
+          <p className="text-sm text-text-muted mt-1">
             Search, filter, analyze, and manage prospects across your deal lifecycle.
           </p>
         </div>
@@ -258,7 +258,7 @@ export default function Leads() {
         <div className="flex items-center gap-2 shrink-0">
           {/* ── View Mode Toggle ────────────────────────────────────────── */}
           <div
-            className="flex items-center gap-0.5 p-1 bg-gray-100 dark:bg-bg-base border border-gray-200 dark:border-border-subtle rounded-lg"
+            className="flex items-center gap-0.5 p-1 bg-bg-surface-hover border border-border-subtle rounded-lg"
             role="group"
             aria-label="Switch view mode"
           >
@@ -267,8 +267,8 @@ export default function Leads() {
               onClick={() => handleViewModeChange('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-white dark:bg-bg-surface text-primary shadow-subtle border border-gray-200 dark:border-border-subtle'
-                  : 'text-gray-500 dark:text-text-muted hover:text-gray-900 dark:hover:text-text-main'
+                  ? 'bg-bg-surface text-primary shadow-subtle border border-border-strong'
+                  : 'text-text-muted hover:text-text-main'
               }`}
               title="Table view"
               aria-label="Switch to table view"
@@ -282,8 +282,8 @@ export default function Leads() {
               onClick={() => handleViewModeChange('card')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
                 viewMode === 'card'
-                  ? 'bg-white dark:bg-bg-surface text-primary shadow-subtle border border-gray-200 dark:border-border-subtle'
-                  : 'text-gray-500 dark:text-text-muted hover:text-gray-900 dark:hover:text-text-main'
+                  ? 'bg-bg-surface text-primary shadow-subtle border border-border-strong'
+                  : 'text-text-muted hover:text-text-main'
               }`}
               title="Card view"
               aria-label="Switch to card view"
@@ -298,7 +298,7 @@ export default function Leads() {
           <button
             id="add-lead-btn"
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-all duration-200 shadow-subtle cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-all duration-200 shadow-subtle cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add Lead</span>

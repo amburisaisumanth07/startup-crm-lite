@@ -13,10 +13,10 @@ export function TopPerformersCard({ performers }) {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Top Sales Reps</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Reps ranked by closed-won deal value.</p>
+            <h3 className="text-base font-bold text-text-main">Top Sales Reps</h3>
+            <p className="text-xs text-text-muted">Reps ranked by closed-won deal value.</p>
           </div>
-          <div className="p-2 bg-purple-50 dark:bg-purple-950/45 text-purple-600 dark:text-purple-400 rounded-xl">
+          <div className="p-2 bg-primary-light dark:bg-primary/15 text-primary rounded-xl">
             <Award className="w-5 h-5" />
           </div>
         </div>
@@ -24,7 +24,7 @@ export function TopPerformersCard({ performers }) {
         {/* Rep leaderboard list */}
         <div className="mt-6 space-y-4">
           {performers.length === 0 ? (
-            <div className="text-center py-6 text-xs text-slate-400 dark:text-slate-500 font-medium">
+            <div className="text-center py-6 text-xs text-text-muted font-medium">
               No won sales data available for this range.
             </div>
           ) : (
@@ -36,24 +36,24 @@ export function TopPerformersCard({ performers }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Rank Indicator */}
-                      <span className="w-5 text-xs font-black text-slate-400 dark:text-slate-500">
+                      <span className="w-5 text-xs font-black text-text-muted">
                         #{idx + 1}
                       </span>
                       {/* Avatar initials fallback */}
-                      <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-350 flex items-center justify-center shrink-0 border border-slate-200/40 dark:border-slate-700/60">
+                      <div className="w-7 h-7 rounded-full bg-bg-surface-hover text-[10px] font-bold text-text-muted flex items-center justify-center shrink-0 border border-border-subtle">
                         {getInitials(rep.name)}
                       </div>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <span className="text-xs font-bold text-text-main">
                         {rep.name}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3 text-right">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-950 dark:text-white">
+                        <span className="text-xs font-bold text-text-main">
                           {formatCurrency(rep.wonRevenue)}
                         </span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold flex items-center gap-0.5 justify-end">
+                        <span className="text-[9px] text-text-muted font-semibold flex items-center gap-0.5 justify-end">
                           <Percent className="w-2.5 h-2.5" /> {rep.convRate}%
                         </span>
                       </div>
@@ -61,9 +61,9 @@ export function TopPerformersCard({ performers }) {
                   </div>
 
                   {/* Relative value progress bar */}
-                  <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-bg-surface-hover h-1.5 rounded-full overflow-hidden">
                     <div
-                      className="bg-purple-650 bg-purple-500 h-full rounded-full transition-all duration-1000"
+                      className="bg-primary h-full rounded-full transition-all duration-1000"
                       style={{ width: `${widthPct}%` }}
                     />
                   </div>

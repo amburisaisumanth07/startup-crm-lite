@@ -54,7 +54,7 @@ export default function ProfileCard() {
 
       <div className="flex flex-col sm:flex-row items-center gap-6">
         {/* Circular Avatar */}
-        <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary to-indigo-600 text-white font-extrabold text-2xl shadow-premium shrink-0 ring-4 ring-primary-light dark:ring-primary/15">
+        <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-primary text-text-inverse font-extrabold text-2xl shadow-premium shrink-0 ring-4 ring-primary-light dark:ring-primary/15">
           {initials}
           <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-success border-2 border-bg-surface" />
         </div>

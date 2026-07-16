@@ -28,10 +28,10 @@ export default function PipelineOverview({ leads = [] }) {
 
   // Define standard statuses and their styling properties
   const statusConfig = {
-    New: { label: 'New', colorClass: 'bg-blue-500', textClass: 'text-blue-500', dotClass: 'bg-blue-500' },
-    Contacted: { label: 'Contacted', colorClass: 'bg-indigo-500', textClass: 'text-indigo-500', dotClass: 'bg-indigo-500' },
-    'Meeting Scheduled': { label: 'Meeting Scheduled', colorClass: 'bg-purple-500', textClass: 'text-purple-500', dotClass: 'bg-purple-500' },
-    'Proposal Sent': { label: 'Proposal Sent', colorClass: 'bg-warning', textClass: 'text-warning', dotClass: 'bg-warning' },
+    New: { label: 'New', colorClass: 'bg-border-strong', textClass: 'text-text-muted', dotClass: 'bg-border-strong' },
+    Contacted: { label: 'Contacted', colorClass: 'bg-primary', textClass: 'text-primary', dotClass: 'bg-primary' },
+    'Meeting Scheduled': { label: 'Meeting Scheduled', colorClass: 'bg-warning', textClass: 'text-warning', dotClass: 'bg-warning' },
+    'Proposal Sent': { label: 'Proposal Sent', colorClass: 'bg-primary-hover', textClass: 'text-primary-hover', dotClass: 'bg-primary-hover' },
     Won: { label: 'Won', colorClass: 'bg-success', textClass: 'text-success', dotClass: 'bg-success' },
     Lost: { label: 'Lost', colorClass: 'bg-danger', textClass: 'text-danger', dotClass: 'bg-danger' },
   };
@@ -94,7 +94,7 @@ export default function PipelineOverview({ leads = [] }) {
             {stages.map((stage) => (
               <div
                 key={stage.status}
-                className="flex items-start gap-2.5 p-2 rounded-lg border border-transparent hover:border-border-subtle hover:bg-gray-50 dark:hover:bg-slate-900 transition-all duration-200"
+                className="flex items-start gap-2.5 p-2 rounded-lg border border-transparent hover:border-border-subtle hover:bg-bg-surface-hover transition-all duration-200"
               >
                 <span className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 ${stage.dotClass}`} />
                 <div className="min-w-0">

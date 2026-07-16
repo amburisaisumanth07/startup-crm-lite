@@ -10,17 +10,17 @@ const FILTER_OPTIONS = [
 
 export function AnalyticsFilters({ activeFilter, onChange }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 p-1 bg-gray-100 dark:bg-slate-800/70 rounded-xl w-fit border border-gray-200 dark:border-slate-700/60">
+    <div className="flex flex-wrap items-center gap-1 p-1 bg-bg-surface-hover rounded-xl w-fit border border-border-subtle">
       {FILTER_OPTIONS.map((opt) => {
         const isActive = activeFilter === opt.id;
         return (
           <button
             key={opt.id}
             onClick={() => onChange(opt.id)}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+            className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
               isActive
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-gray-200 dark:ring-slate-700'
-                : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 hover:bg-gray-200/60 dark:hover:bg-slate-700/50'
+                ? 'bg-bg-surface text-primary shadow-subtle ring-1 ring-border-strong'
+                : 'text-text-muted hover:text-text-main hover:bg-bg-base'
             }`}
           >
             {opt.label}

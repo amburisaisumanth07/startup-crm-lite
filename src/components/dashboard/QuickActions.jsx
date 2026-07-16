@@ -30,14 +30,14 @@ export default function QuickActions({ onAddNewLead, onViewAllLeads, onExportDat
         {/* Action: Add New Lead */}
         <button
           onClick={onAddNewLead}
-          className="w-full flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary text-white hover:bg-primary-hover transition-all duration-200 cursor-pointer shadow-subtle text-left group"
+          className="w-full flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary text-text-inverse hover:bg-primary-hover transition-all duration-200 cursor-pointer shadow-subtle text-left group"
         >
-          <div className="p-2 rounded-md bg-white/10 text-white shrink-0">
+          <div className="p-2 rounded-md bg-white/10 text-text-inverse shrink-0">
             <UserPlus className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110" />
           </div>
           <div>
             <div className="text-xs font-bold leading-none">Add New Lead</div>
-            <div className="text-[10px] text-white/80 mt-1 leading-none font-medium">Create a new prospect entry</div>
+            <div className="text-[10px] text-text-inverse/80 mt-1 leading-none font-medium">Create a new prospect entry</div>
           </div>
         </button>
 

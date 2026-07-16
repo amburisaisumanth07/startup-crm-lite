@@ -59,7 +59,7 @@ const renderActiveShape = (props) => {
         y={ey}
         textAnchor={textAnchor}
         fill="currentColor"
-        className="text-xs font-bold fill-slate-800 dark:fill-slate-200"
+        className="text-xs font-bold fill-current"
       >
         {payload.name}
       </text>
@@ -69,7 +69,7 @@ const renderActiveShape = (props) => {
         dy={14}
         textAnchor={textAnchor}
         fill="currentColor"
-        className="text-[10px] fill-slate-500 dark:fill-slate-400"
+        className="text-[10px] fill-current opacity-60"
       >
         {`${value} Leads (${percentage}%)`}
       </text>
@@ -104,8 +104,8 @@ export function PieChartCard({ data, totalLeads }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Value Allocation By Stage</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Current stages across all qualified leads.</p>
+        <h3 className="text-base font-bold text-text-main">Value Allocation By Stage</h3>
+        <p className="text-xs text-text-muted">Current stages across all qualified leads.</p>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 mt-6">
@@ -116,9 +116,9 @@ export function PieChartCard({ data, totalLeads }) {
               <Tooltip
                 content={<CustomTooltip />}
                 contentStyle={{
-                  backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                  color: isDarkMode ? '#FFFFFF' : '#111827',
-                  border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB',
+                  backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                  color: isDarkMode ? '#FAFAF7' : '#151515',
+                  border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8',
                 }}
               />
               <Pie
@@ -137,7 +137,7 @@ export function PieChartCard({ data, totalLeads }) {
                   <Cell
                     key={`cell-${entry.name}`}
                     fill={STATUS_COLORS[entry.name] || '#94A3B8'}
-                    className="stroke-white dark:stroke-slate-900 stroke-2 outline-none transition-all duration-200 hover:brightness-110 cursor-pointer"
+                    className="stroke-bg-surface stroke-2 outline-none transition-all duration-200 hover:brightness-110 cursor-pointer"
                   />
                 ))}
               </Pie>
@@ -146,10 +146,10 @@ export function PieChartCard({ data, totalLeads }) {
 
           {/* Absolute Center Label */}
           <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+            <span className="text-3xl font-extrabold text-text-main">
               {totalLeads}
             </span>
-            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
               Total Leads
             </span>
           </div>
@@ -168,8 +168,8 @@ export function PieChartCard({ data, totalLeads }) {
                   flex items-center justify-between p-2.5 rounded-xl border
                   transition-all duration-200 ease-out cursor-pointer
                   ${isActive
-                    ? 'border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 shadow-sm dark:shadow-[0_2px_10px_rgba(0,0,0,0.5)] scale-[1.02]'
-                    : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-sm hover:scale-[1.01]'
+                    ? 'border-border-subtle bg-bg-surface-hover shadow-subtle'
+                    : 'border-transparent hover:bg-bg-surface-hover hover:border-border-subtle hover:shadow-subtle hover:scale-[1.01]'
                   }
                 `}
               >
@@ -181,13 +181,13 @@ export function PieChartCard({ data, totalLeads }) {
                       boxShadow: isActive ? `0 0 0 3px ${color}28` : 'none',
                     }}
                   />
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="text-xs font-semibold text-text-muted">
                     {entry.name}
                   </span>
                 </div>
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-bold text-text-main">
                   {entry.value}{' '}
-                  <span className="text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-text-muted font-medium">
                     ({entry.percentage}%)
                   </span>
                 </span>

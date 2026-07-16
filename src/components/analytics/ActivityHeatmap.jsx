@@ -9,32 +9,32 @@ const MONTHS_SHORT = [
 export function ActivityHeatmap({ data }) {
   const { cardClass, isDarkMode } = useChartTheme();
 
-  // Colour intensity based on lead count — maps to both light and dark
+  // Gold intensity scale based on lead count — maps to both light and dark
   const getCellColor = (count) => {
-    if (count === 0)  return isDarkMode ? 'bg-slate-800/40' : 'bg-slate-100';
-    if (count <= 1)   return isDarkMode ? 'bg-blue-900/50' : 'bg-blue-200';
-    if (count <= 2)   return isDarkMode ? 'bg-blue-800/70' : 'bg-blue-300';
-    if (count <= 4)   return 'bg-blue-500 text-white';
-    return 'bg-blue-700 text-white';
+    if (count === 0)  return isDarkMode ? 'bg-border-subtle' : 'bg-bg-surface-hover';
+    if (count <= 1)   return isDarkMode ? 'bg-primary/20' : 'bg-primary/20';
+    if (count <= 2)   return isDarkMode ? 'bg-primary/40' : 'bg-primary/35';
+    if (count <= 4)   return 'bg-primary/70 text-bg-surface';
+    return 'bg-primary text-text-inverse';
   };
 
-  // Theme-aware tooltip class (mirrors useChartTheme.tooltipWrapperClass but for absolute-positioned DOM)
-  const hoverTipClass = isDarkMode
-    ? 'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-20 pointer-events-none bg-slate-950 border border-slate-800 text-white text-[10px] font-medium py-1.5 px-2.5 rounded-md whitespace-nowrap shadow-[0_4px_16px_rgba(0,0,0,0.7)]'
-    : 'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-20 pointer-events-none bg-white border border-gray-200 text-gray-900 text-[10px] font-medium py-1.5 px-2.5 rounded-md whitespace-nowrap shadow-lg';
+  // Theme-aware tooltip class using brand tokens
+  const hoverTipClass =
+    'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-20 pointer-events-none ' +
+    'bg-bg-surface border border-border-subtle text-text-main text-[10px] font-medium py-1.5 px-2.5 rounded-md whitespace-nowrap shadow-premium';
 
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Deal Ingestion Activity</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Heatmap tracking incoming lead volume over the past 52 weeks.</p>
+        <h3 className="text-base font-bold text-text-main">Deal Ingestion Activity</h3>
+        <p className="text-xs text-text-muted">Heatmap tracking incoming lead volume over the past 52 weeks.</p>
       </div>
 
       <div className="mt-6 overflow-x-auto select-none">
         <div className="min-w-[760px] flex flex-col gap-2">
           
           {/* Month Headers */}
-          <div className="flex text-[10px] font-semibold text-slate-400 dark:text-slate-500 h-4 relative">
+          <div className="flex text-[10px] font-semibold text-text-muted h-4 relative">
             <div className="w-8 shrink-0" /> {/* Spacer for days column */}
             <div className="flex-1 flex justify-between pr-4">
               {MONTHS_SHORT.map((m, idx) => (
@@ -49,7 +49,7 @@ export function ActivityHeatmap({ data }) {
           <div className="flex gap-2">
             
             {/* Days column */}
-            <div className="flex flex-col justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 py-1.5 w-8 shrink-0">
+            <div className="flex flex-col justify-between text-[10px] font-semibold text-text-muted py-1.5 w-8 shrink-0">
               <span>Sun</span>
               <span>Tue</span>
               <span>Thu</span>
@@ -86,13 +86,13 @@ export function ActivityHeatmap({ data }) {
           </div>
 
           {/* Heatmap Legend */}
-          <div className="flex items-center justify-end gap-1.5 text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-2">
+          <div className="flex items-center justify-end gap-1.5 text-[10px] font-medium text-text-muted mt-2">
             <span>Less</span>
-            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-slate-800/40' : 'bg-slate-100'}`} />
-            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-blue-900/50' : 'bg-blue-200'}`} />
-            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-blue-800/70' : 'bg-blue-300'}`} />
-            <div className="w-2.5 h-2.5 rounded-sm bg-blue-500" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-blue-700" />
+            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-border-subtle' : 'bg-bg-surface-hover'}`} />
+            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-primary/20' : 'bg-primary/20'}`} />
+            <div className={`w-2.5 h-2.5 rounded-sm ${isDarkMode ? 'bg-primary/40' : 'bg-primary/35'}`} />
+            <div className="w-2.5 h-2.5 rounded-sm bg-primary/70" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-primary" />
             <span>More</span>
           </div>
 

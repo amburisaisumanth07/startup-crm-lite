@@ -56,7 +56,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* Sidebar Header / Brand */}
         <div className="mb-8 flex items-center justify-between md:justify-center lg:justify-between">
           <div className="flex items-center gap-3 md:flex-col lg:flex-row">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-subtle shrink-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-text-inverse shadow-subtle shrink-0">
               <Sparkles className="h-5 w-5" />
             </div>
             <div className="md:hidden lg:block text-center lg:text-left">

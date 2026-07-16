@@ -3,15 +3,15 @@ import { BarChart3 } from 'lucide-react';
 
 export function EmptyAnalyticsState({ onAddLead }) {
   return (
-    <div className="flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center bg-white dark:bg-slate-900 shadow-sm animate-fadeIn max-w-lg mx-auto mt-12">
-      <div className="p-4 bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 rounded-2xl mb-6">
-        <BarChart3 className="w-10 h-10 stroke-1" />
+    <div className="flex flex-col items-center justify-center border border-dashed border-border-subtle rounded-3xl p-16 text-center bg-bg-surface shadow-sm animate-fadeIn max-w-lg mx-auto mt-12">
+      <div className="p-4 bg-bg-surface-hover text-text-muted rounded-2xl mb-6">
+        <BarChart3 className="w-10 h-10" strokeWidth={1.5} />
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-        No analytics available yet
+      <h3 className="text-lg font-bold text-text-main mb-2">
+        Not enough data yet
       </h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-8 leading-relaxed">
+      <p className="text-xs text-text-muted max-w-sm mb-8 leading-relaxed">
         Add your first lead to start tracking business performance, pipeline valuations, conversion trends, and insights.
       </p>
 

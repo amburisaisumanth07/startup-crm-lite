@@ -28,7 +28,7 @@ export default function AppLayout() {
         {/* ── Mobile-only Top Header Bar ─────────────────────────────────── */}
         <header className="md:hidden shrink-0 flex items-center justify-between border-b border-border-subtle bg-bg-surface px-4 py-3 z-30">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-text-inverse">
               <Sparkles className="h-4 w-4" />
             </div>
             <span className="text-sm font-bold tracking-tight text-text-main">Luminate</span>

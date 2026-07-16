@@ -23,9 +23,9 @@ export function FunnelChartCard({ data }) {
           <p className="font-bold mb-1.5">{d.name}</p>
           <div className="space-y-1 opacity-80">
             <p>Leads Count: <span className="font-semibold opacity-100">{d.value}</span></p>
-            <p>Conversion from Prev: <span className="font-semibold text-green-500 dark:text-green-400">{d.convRate}%</span></p>
+            <p>Conversion from Prev: <span className="font-semibold text-success">{d.convRate}%</span></p>
             {d.name !== 'New' && (
-              <p>Drop-off Rate: <span className="font-semibold text-rose-500 dark:text-rose-400">{d.dropOff}%</span></p>
+              <p>Drop-off Rate: <span className="font-semibold text-danger">{d.dropOff}%</span></p>
             )}
           </div>
         </div>
@@ -37,8 +37,8 @@ export function FunnelChartCard({ data }) {
   return (
     <div className={cardClass}>
       <div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">Pipeline Funnel Efficiency</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Full funnel drop-offs and stage conversions.</p>
+        <h3 className="text-base font-bold text-text-main">Pipeline Funnel Efficiency</h3>
+        <p className="text-xs text-text-muted">Full funnel drop-offs and stage conversions.</p>
       </div>
 
       <div className="flex flex-col lg:flex-row items-center gap-6 mt-6">
@@ -48,11 +48,11 @@ export function FunnelChartCard({ data }) {
             <FunnelChart>
               <Tooltip
                 content={<CustomTooltip />}
-                contentStyle={{
-                  backgroundColor: isDarkMode ? '#020617' : '#FFFFFF',
-                  color: isDarkMode ? '#FFFFFF' : '#111827',
-                  border: isDarkMode ? '1px solid #1E293B' : '1px solid #E5E7EB'
-                }}
+                  contentStyle={{
+                    backgroundColor: isDarkMode ? '#1B1B1B' : '#F2EFE8',
+                    color: isDarkMode ? '#FAFAF7' : '#151515',
+                    border: isDarkMode ? '1px solid #2C2C2C' : '1px solid #D8D2C8'
+                  }}
               />
               <Funnel
                 dataKey="value"
@@ -70,7 +70,7 @@ export function FunnelChartCard({ data }) {
                 <LabelList
                   position="right"
                   fill="currentColor"
-                  className="fill-slate-600 dark:fill-slate-400 text-[10px] font-bold"
+                  className="fill-text-muted text-[10px] font-bold"
                   dataKey="name"
                 />
               </Funnel>
@@ -86,12 +86,12 @@ export function FunnelChartCard({ data }) {
                 key={item.stage}
                 className={
                   'flex items-center justify-between p-2.5 rounded-xl border ' +
-                  'border-slate-100 dark:border-slate-800/60 ' +
-                  'bg-slate-50/50 dark:bg-slate-800/20 ' +
+                  'border-border-subtle ' +
+                  'bg-bg-base ' +
                   'transition-all duration-200 ease-out cursor-default ' +
-                  'hover:bg-gray-50 dark:hover:bg-slate-900 ' +
-                  'hover:border-slate-200 dark:hover:border-slate-700 ' +
-                  'hover:shadow-sm dark:hover:shadow-[0_2px_12px_rgba(0,0,0,0.4)] ' +
+                  'hover:bg-bg-surface-hover ' +
+                  'hover:border-border-strong ' +
+                  'hover:shadow-subtle ' +
                   'hover:scale-[1.01]'
                 }
               >
@@ -101,10 +101,10 @@ export function FunnelChartCard({ data }) {
                     style={{ backgroundColor: item.fill }}
                   />
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <span className="text-xs font-bold text-text-main">
                       {item.stage}
                     </span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] text-text-muted">
                       {item.count} Active Leads
                     </span>
                   </div>
@@ -112,19 +112,19 @@ export function FunnelChartCard({ data }) {
 
                 <div className="flex items-center gap-4 text-right">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-green-600 dark:text-green-400">
+                    <span className="text-xs font-bold text-success">
                       {item.convRate}%
                     </span>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <span className="text-[9px] text-text-muted uppercase tracking-wider">
                       Conversion
                     </span>
                   </div>
                   {idx > 0 && (
-                    <div className="flex flex-col border-l border-slate-200 dark:border-slate-800 pl-3">
-                      <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                    <div className="flex flex-col border-l border-border-subtle pl-3">
+                      <span className="text-xs font-bold text-danger">
                         {item.dropOff}%
                       </span>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      <span className="text-[9px] text-text-muted uppercase tracking-wider">
                         Drop-off
                       </span>
                     </div>
