@@ -33,8 +33,11 @@ const TOKEN_KEY = 'crm-token';
  *
  * @type {import('axios').AxiosInstance}
  */
+const rawBaseUrl = import.meta.env.VITE_API_URL || '';
+const baseURL = rawBaseUrl ? rawBaseUrl.trim().replace(/\/+$/, '') : '';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

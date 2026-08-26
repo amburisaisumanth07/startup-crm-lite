@@ -4,33 +4,40 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import mongoose from 'mongoose';
+import { fileURLToPath } from 'url';
 
 // Load environment variables before anything else
 dotenv.config();
+
+// Determine if this file is being executed directly (e.g. `node server.js`) or imported in tests
+const isMainModule = process.argv[1] && (
+  fileURLToPath(import.meta.url) === process.argv[1] ||
+  process.argv[1].endsWith('server.js')
+);
 
 // ----------------------------------------------------
 // Process-Level Safety Net (must be first)
 // ----------------------------------------------------
 /**
  * Catch any unhandled promise rejection that slips through try/catch blocks.
- * In production on Railway, an unhandled rejection crashes the container and
- * triggers a silent restart loop with no diagnostic log.
+ * In production on Render, an unhandled rejection crashes the container and
+ * triggers a restart with diagnostic logs.
  */
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('UNHANDLED PROMISE REJECTION — shutting down.', { reason, promise });
-  // Exit so Railway restarts the container (which is the correct behavior)
-  process.exit(1);
-});
+if (isMainModule) {
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('UNHANDLED PROMISE REJECTION — shutting down.', { reason, promise });
+    process.exit(1);
+  });
 
-/**
- * Catch synchronous exceptions thrown outside of any error boundary.
- * These are almost always programming bugs; log them clearly and exit.
- */
-process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION — shutting down.', err);
-  process.exit(1);
-});
+  /**
+   * Catch synchronous exceptions thrown outside of any error boundary.
+   * These are almost always programming bugs; log them clearly and exit.
+   */
+  process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION — shutting down.', err);
+    process.exit(1);
+  });
+}
 
 /**
  * 4. Environment validation on startup:
@@ -38,7 +45,7 @@ process.on('uncaughtException', (err) => {
  * Exits the process with status code 1 if any required variables are missing.
  */
 function checkRequiredEnvVars() {
-  // PORT is intentionally excluded: Railway injects it automatically.
+  // PORT is intentionally excluded: Render injects it automatically.
   // The server already falls back to 5000 locally via: process.env.PORT || 5000
   const requiredVars = ['MONGODB_URI', 'JWT_SECRET'];
   const missingVars = requiredVars.filter(varName => !process.env[varName]);
@@ -53,8 +60,10 @@ function checkRequiredEnvVars() {
   }
 }
 
-// Run environment validation before database connection
-checkRequiredEnvVars();
+// Run environment validation before database connection when executed directly
+if (isMainModule) {
+  checkRequiredEnvVars();
+}
 
 // Import Database Connection
 import { connectDB } from './config/database.js';
@@ -78,16 +87,16 @@ import leadRoutes from './routes/leadRoutes.js';
 const app = express();
 
 // ----------------------------------------------------
-// Trust Proxy — REQUIRED for Railway
+// Trust Proxy — REQUIRED for Render
 // ----------------------------------------------------
 /**
- * Railway (and most cloud platforms) sit behind a load balancer / reverse proxy.
+ * Render (and most cloud platforms) sit behind a load balancer / reverse proxy.
  * Without this setting:
  *   - express-rate-limit sees the same proxy IP for every client, applying
  *     the rate limit to ALL users simultaneously instead of per-client.
  *   - req.ip returns the proxy's IP, not the real client IP.
  *
- * '1' means trust the first proxy in the X-Forwarded-For chain (Railway's LB).
+ * '1' means trust the first proxy in the X-Forwarded-For chain (Render's LB).
  */
 app.set('trust proxy', 1);
 
@@ -95,75 +104,85 @@ app.set('trust proxy', 1);
 // Database Initialization
 // ----------------------------------------------------
 // Connect after app is initialized so event emitters are ready.
-connectDB();
+if (isMainModule) {
+  connectDB();
+}
 
 // ----------------------------------------------------
 // Middleware Setup
 // ----------------------------------------------------
 
-// helmet: sets various security HTTP headers
-app.use(helmet());
+// helmet: sets various security HTTP headers with crossOriginResourcePolicy configured for cross-origin API access
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 /**
  * 6. Request logging:
  * Production: 'short' format — avoids logging full query strings which may
- *   contain PII (e.g. ?search=john@company.com) in Railway's log stream.
+ *   contain PII (e.g. ?search=john@company.com) in Render's log stream.
  * Development: 'dev' format — concise, colorized output for local debugging.
  */
 if (process.env.NODE_ENV === 'production') {
   app.use(morgan('short'));
-} else {
+} else if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
 /**
  * 3. CORS — Production-ready configuration:
  *
- * Allowed origins are resolved at startup from environment variables.
- * In development, all localhost origins on any port are permitted.
- * In production, only origins listed in ALLOWED_ORIGINS are accepted.
- * Requests with no Origin header (Postman, curl, mobile apps) are always allowed.
+ * Allowed origins are resolved dynamically from environment variables.
+ * In development, all localhost and 127.0.0.1 origins on any port are permitted.
+ * In production, origins listed in FRONTEND_URL are accepted.
+ * Requests with no Origin header (Postman, curl, server-to-server, mobile apps) are always allowed.
  *
- * Required env var:
- *   FRONTEND_URL  — your deployed Vercel frontend URL (e.g. https://startup-crm.vercel.app)
- *
- * IMPORTANT: Trailing slashes are stripped from FRONTEND_URL because browser
- *   Origin headers never include a trailing slash. Without stripping, the
- *   allowedOrigins.includes(origin) check would always fail in production.
+ * Required env var on Render:
+ *   FRONTEND_URL — your deployed Vercel frontend URL (e.g. https://startup-crm-lite-drab.vercel.app)
  */
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-// Strip any trailing slash from FRONTEND_URL before adding to allowlist.
-// Browser Origin headers: "https://startup-crm.vercel.app" (no trailing slash).
-const allowedOrigins = [
-  process.env.FRONTEND_URL?.replace(/\/$/, ''), // Strip trailing slash
-].filter(Boolean);
+// Parse allowed origins from FRONTEND_URL (supports comma-separated list, trims whitespace, strips trailing slashes)
+const getAllowedOrigins = () => {
+  if (!process.env.FRONTEND_URL) return [];
+  return process.env.FRONTEND_URL
+    .split(',')
+    .map((url) => url.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+};
 
-// Regex to match any localhost origin regardless of port (development only)
-const LOCALHOST_ORIGIN_RE = /^http:\/\/localhost:\d+$/;
+// Regex to match any localhost / 127.0.0.1 origin regardless of port (development only)
+const LOCALHOST_ORIGIN_RE = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (Postman, curl, server-to-server, mobile apps)
-      if (!origin) return callback(null, true);
+export const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, curl, server-to-server, mobile apps, health checks)
+    if (!origin) return callback(null, true);
 
-      // In development: allow all localhost origins
-      if (!IS_PRODUCTION && LOCALHOST_ORIGIN_RE.test(origin)) {
-        return callback(null, true);
-      }
+    // In development: allow all localhost and 127.0.0.1 origins
+    if (!IS_PRODUCTION && LOCALHOST_ORIGIN_RE.test(origin)) {
+      return callback(null, true);
+    }
 
-      // In production: only allow explicitly configured origins
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    // In production or when FRONTEND_URL is defined: check allowed origins list
+    const allowed = getAllowedOrigins();
+    if (allowed.includes(origin.replace(/\/+$/, ''))) {
+      return callback(null, true);
+    }
 
-      // Reject all other origins
-      return callback(new Error(`CORS: origin '${origin}' is not allowed`));
-    },
-    credentials: true,
-  })
-);
+    // Disallow origin gracefully without throwing an unhandled Error (which triggers 500 error handler)
+    return callback(null, false);
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
 
 /**
  * 1. Rate Limiting:
@@ -196,8 +215,10 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many auth attempts, please try again later.' },
 });
 
-app.use('/api/', generalLimiter);
-app.use('/api/auth/', authLimiter);
+if (process.env.NODE_ENV !== 'test') {
+  app.use('/api/', generalLimiter);
+  app.use('/api/auth/', authLimiter);
+}
 
 // express.json: parses incoming JSON payloads with a payload limit (10kb) to prevent DoS
 app.use(express.json({ limit: '10kb' }));
@@ -253,50 +274,49 @@ app.use(errorHandler);
 // ----------------------------------------------------
 // Server Startup and Graceful Shutdown
 // ----------------------------------------------------
+import mongoose from 'mongoose';
+
 const PORT = process.env.PORT || 5000;
 const MODE = process.env.NODE_ENV || 'development';
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${MODE} mode`);
-});
+let server = null;
 
-/**
- * 5. Graceful shutdown:
- * Listens for process SIGTERM and SIGINT signals to close the HTTP server
- * and cleanly close the MongoDB connection before exiting.
- *
- * FIX: The force-shutdown setTimeout is now .unref()-ed.
- *   Without .unref(), the timer holds the Node.js event loop open for 10 seconds
- *   after server.close() finishes. Railway sees the process is still alive and
- *   eventually sends SIGKILL, logging a deployment error. With .unref(), the
- *   timer doesn't block exit — it only fires if the process is still running
- *   when 10 seconds elapse (i.e., graceful shutdown hung).
- */
-const handleGracefulShutdown = async (signal) => {
-  console.log(`\nReceived ${signal}. Server shutting down gracefully...`);
-
-  server.close(async () => {
-    console.log('HTTP server closed.');
-    try {
-      // Close the MongoDB connection cleanly
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed cleanly.');
-      process.exit(0);
-    } catch (err) {
-      console.error('Error during MongoDB disconnection:', err);
-      process.exit(1);
-    }
+if (isMainModule) {
+  server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} in ${MODE} mode`);
   });
 
-  // Force shutdown after 10 seconds if graceful shutdown hangs.
-  // .unref() prevents this timer from keeping the event loop alive
-  // if the server has already shut down cleanly.
-  setTimeout(() => {
-    console.error('Forced shutdown due to timeout.');
-    process.exit(1);
-  }, 10000).unref();
-};
+  /**
+   * 5. Graceful shutdown:
+   * Listens for process SIGTERM and SIGINT signals to close the HTTP server
+   * and cleanly close the MongoDB connection before exiting.
+   */
+  const handleGracefulShutdown = async (signal) => {
+    console.log(`\nReceived ${signal}. Server shutting down gracefully...`);
 
-// Listen for termination signals from OS/orchestrator
-process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+    server.close(async () => {
+      console.log('HTTP server closed.');
+      try {
+        // Close the MongoDB connection cleanly
+        await mongoose.connection.close();
+        console.log('MongoDB connection closed cleanly.');
+        process.exit(0);
+      } catch (err) {
+        console.error('Error during MongoDB disconnection:', err);
+        process.exit(1);
+      }
+    });
+
+    setTimeout(() => {
+      console.error('Forced shutdown due to timeout.');
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  // Listen for termination signals from OS/orchestrator
+  process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+}
+
+export { app, server };
+export default app;

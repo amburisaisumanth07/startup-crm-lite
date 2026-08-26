@@ -11,7 +11,7 @@ dotenv.config();
  *  - serverSelectionTimeoutMS: fail fast (10s) if Atlas is unreachable instead of hanging.
  *  - socketTimeoutMS: abort a slow operation after 45s.
  *  - family is intentionally NOT set — omitting it lets the driver negotiate IPv4/IPv6
- *    automatically, which is required on Railway's network infrastructure.
+ *    automatically, which is required on Render's network infrastructure.
  */
 export const connectDB = async () => {
   try {
@@ -23,7 +23,7 @@ export const connectDB = async () => {
     // On success, log the host to confirm which cluster we're connected to
     console.log(`MongoDB Atlas Connected: ${conn.connection.host}`);
   } catch (error) {
-    // On error, log the error message and exit so Railway restarts the container
+    // On error, log the error message and exit so Render restarts the container
     console.error(`Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
   }
